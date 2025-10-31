@@ -8,7 +8,7 @@
 import UIKit
 
 
-enum CGA: String, Colorable {
+public enum CGA: String, Colorable {
     
     case black = "#000000"
     case blue = "#0000AA"
