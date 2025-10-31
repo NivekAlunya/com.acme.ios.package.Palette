@@ -27,13 +27,13 @@ enum CGA: String, Colorable {
     case yellow = "#FFFF55"
     case white = "#FFFFFF"
     
-    var color: UIColor {
+    public var color: UIColor {
         get {
             return ColorHelper.hexcolor(self.rawValue)
         }
     }
     
-    var hex: String {
+    public var hex: String {
         get {
             return self.rawValue
         }
