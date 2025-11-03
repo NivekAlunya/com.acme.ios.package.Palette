@@ -19,6 +19,9 @@ public struct ColorGridPicker<T: Colorable>: View {
     @State private var scrollState: ScrollState = .noScroll
     let gradient = Gradient(colors: [Color.white.opacity(0.5), Color.clear])
     let gradientWidth: CGFloat = 10
+    
+    // Delay before scrolling to selected color on appear (in seconds)
+    private let scrollToSelectedDelay: Double = 0.1
 
     let colors: [T]
     let rows: Int
@@ -35,7 +38,7 @@ public struct ColorGridPicker<T: Colorable>: View {
             ScrollView(.horizontal) {
                 LazyHGrid(rows: Array(repeating: GridItem(.fixed(80), spacing: 10), count: rows), spacing: 10) {
                     ForEach(colors, id: \.hex) { color in
-                        let borderColor = selectedColor == color.hex && color.color.meetsWCAG_AA(with: .white) ? Color(color.color) : Color.black
+                        let borderColor = borderColor(for: color)
                         let lineWidth: CGFloat = selectedColor == color.hex ? 2 : 1
                         
                         VStack {
@@ -98,7 +101,7 @@ public struct ColorGridPicker<T: Colorable>: View {
             }
             .onAppear {
                 if let hex = selectedColor {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + scrollToSelectedDelay) {
                         withAnimation {
                             proxy.scrollTo(hex, anchor: .center)
                         }
@@ -106,6 +109,17 @@ public struct ColorGridPicker<T: Colorable>: View {
                 }
             }
         }
+    }
+    
+    /// Determines the border color for a color item based on selection state and WCAG contrast.
+    /// - Parameter color: The color item to determine border color for
+    /// - Returns: Black border for unselected items or selected items that don't meet WCAG AA contrast with white;
+    ///           otherwise uses the color itself for selected items with sufficient contrast
+    private func borderColor(for color: T) -> Color {
+        guard selectedColor == color.hex else {
+            return .black
+        }
+        return color.color.meetsWCAG_AA(with: .white) ? Color(color.color) : .black
     }
 }
 
