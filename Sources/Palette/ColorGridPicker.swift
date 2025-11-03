@@ -30,12 +30,21 @@ public struct ColorGridPicker<T: Colorable>: View {
         self.rows = rows
     }
     
+    /// Determines the border color for a color swatch based on selection state and contrast.
+    /// - Parameter color: The color to evaluate
+    /// - Returns: The color itself if selected and has good contrast with white, otherwise black
+    private func borderColor(for color: T) -> Color {
+        if selectedColor == color.hex && color.color.meetsWCAG_AA(with: .white) {
+            return Color(color.color)
+        }
+        return Color.black
+    }
+    
     public var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal) {
                 LazyHGrid(rows: Array(repeating: GridItem(.fixed(80), spacing: 10), count: rows), spacing: 10) {
                     ForEach(colors, id: \.hex) { color in
-                        let borderColor = selectedColor == color.hex && color.color.meetsWCAG_AA(with: .white) ? Color(color.color) : Color.black
                         let lineWidth: CGFloat = selectedColor == color.hex ? 2 : 1
                         
                         VStack {
@@ -45,7 +54,7 @@ public struct ColorGridPicker<T: Colorable>: View {
                                 .padding(2)
                                 .overlay(alignment: .center) {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .stroke(borderColor, lineWidth: lineWidth)
+                                        .stroke(borderColor(for: color), lineWidth: lineWidth)
                                 }
                                 .scaleEffect(selectedColor == color.hex ? 1.1 : 1.0)
                                 .onTapGesture {
