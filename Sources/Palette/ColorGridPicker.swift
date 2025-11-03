@@ -30,13 +30,24 @@ public struct ColorGridPicker<T: Colorable>: View {
         self.rows = rows
     }
     
+    /// Determines the appropriate border color for a color swatch.
+    /// For dark colors (that meet WCAG AA contrast with white), uses the color itself for visual harmony.
+    /// For light colors or unselected swatches, uses black for visibility.
+    private func borderColor(for color: T, isSelected: Bool) -> Color {
+        if isSelected && color.color.meetsWCAG_AA(with: .white) {
+            return Color(color.color)
+        }
+        return Color.black
+    }
+    
     public var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal) {
                 LazyHGrid(rows: Array(repeating: GridItem(.fixed(80), spacing: 10), count: rows), spacing: 10) {
                     ForEach(colors, id: \.hex) { color in
-                        let borderColor = selectedColor == color.hex && color.color.meetsWCAG_AA(with: .white) ? Color(color.color) : Color.black
-                        let lineWidth: CGFloat = selectedColor == color.hex ? 2 : 1
+                        let isSelected = selectedColor == color.hex
+                        let borderColor = borderColor(for: color, isSelected: isSelected)
+                        let lineWidth: CGFloat = isSelected ? 2 : 1
                         
                         VStack {
                             RoundedRectangle(cornerRadius: 8)
@@ -47,7 +58,7 @@ public struct ColorGridPicker<T: Colorable>: View {
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(borderColor, lineWidth: lineWidth)
                                 }
-                                .scaleEffect(selectedColor == color.hex ? 1.1 : 1.0)
+                                .scaleEffect(isSelected ? 1.1 : 1.0)
                                 .onTapGesture {
                                     selectedColor = color.hex
                                 }
