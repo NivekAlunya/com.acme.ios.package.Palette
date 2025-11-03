@@ -19,6 +19,9 @@ public struct ColorGridPicker<T: Colorable>: View {
     @State private var scrollState: ScrollState = .noScroll
     let gradient = Gradient(colors: [Color.white.opacity(0.5), Color.clear])
     let gradientWidth: CGFloat = 10
+    
+    // Delay before scrolling to selected color on appear to ensure layout is complete
+    private let scrollDelay: TimeInterval = 0.1
 
     let colors: [T]
     let rows: Int
@@ -35,6 +38,8 @@ public struct ColorGridPicker<T: Colorable>: View {
             ScrollView(.horizontal) {
                 LazyHGrid(rows: Array(repeating: GridItem(.fixed(80), spacing: 10), count: rows), spacing: 10) {
                     ForEach(colors, id: \.hex) { color in
+                        // Use color itself as border if selected and has sufficient contrast with white background
+                        // Otherwise use black border for better visibility
                         let borderColor = selectedColor == color.hex && color.color.meetsWCAG_AA(with: .white) ? Color(color.color) : Color.black
                         let lineWidth: CGFloat = selectedColor == color.hex ? 2 : 1
                         
@@ -98,7 +103,7 @@ public struct ColorGridPicker<T: Colorable>: View {
             }
             .onAppear {
                 if let hex = selectedColor {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + scrollDelay) {
                         withAnimation {
                             proxy.scrollTo(hex, anchor: .center)
                         }
