@@ -5,7 +5,7 @@
 //  Created by Kevin Launay on 20/10/2025.
 //
 
-//create a swiftui component for selecting a color from a predefined set of colors
+// Create a SwiftUI component for selecting a color from a predefined set of colors
 
 import SwiftUI
 public struct ColorGridPicker<T: Colorable>: View {
