@@ -75,7 +75,6 @@ public struct ColorGridPicker<T: Colorable>: View {
                 withAnimation {
                     scrollState = newValue
                 }
-                print("ScrollState is now \(newValue)")
             }
             .overlay(
                 HStack {
