@@ -15,22 +15,28 @@ public struct ColorGridPicker<T: Colorable>: View {
         case scrolling
         case noScroll
     }
-
     @State private var scrollState: ScrollState = .noScroll
-    let gradient = Gradient(colors: [Color.white.opacity(0.5), Color.clear])
+    let gradient: Gradient
     let gradientWidth: CGFloat = 10
     
     // Delay before scrolling to selected color on appear (in seconds)
     private let scrollToSelectedDelay: Double = 0.1
-
+    let gradientStartColor: Color
+    let textAndBorderColor: Color
     let colors: [T]
     let rows: Int
     @Binding var selectedColor: String?
 
-    public init(colors: [T], rows: Int = 4, selectedColor: Binding<String?>) {
+    public init(gradientStartColor: Color, textAndBorderColor: Color, colors: [T], rows: Int = 4, selectedColor: Binding<String?>) {
         self.colors = colors
+        self.gradientStartColor = gradientStartColor
+        self.textAndBorderColor = textAndBorderColor
         self._selectedColor = selectedColor
         self.rows = rows
+        self.gradient = Gradient(colors: [
+            gradientStartColor.opacity(0.8),
+            gradientStartColor.opacity(0.0)
+        ])
     }
     
     public var body: some View {
@@ -38,8 +44,8 @@ public struct ColorGridPicker<T: Colorable>: View {
             ScrollView(.horizontal) {
                 LazyHGrid(rows: Array(repeating: GridItem(.fixed(80), spacing: 10), count: rows), spacing: 10) {
                     ForEach(colors, id: \.hex) { color in
-                        let borderColor = borderColor(for: color)
-                        let lineWidth: CGFloat = selectedColor == color.hex ? 2 : 1
+                        let borderColor = textAndBorderColor
+                        let lineWidth: CGFloat = selectedColor == color.hex ? 2 : 0
                         
                         VStack {
                             RoundedRectangle(cornerRadius: 8)
@@ -63,6 +69,7 @@ public struct ColorGridPicker<T: Colorable>: View {
                 }
                 .padding()
             }
+            .foregroundColor(textAndBorderColor)
             .onScrollGeometryChange(for: ScrollState.self) { geo in
                 if geo.contentSize.width <= geo.bounds.width {
                     return .noScroll
@@ -111,27 +118,23 @@ public struct ColorGridPicker<T: Colorable>: View {
         }
     }
     
-    /// Determines the border color for a color item based on selection state and WCAG contrast.
-    /// - Parameter color: The color item to determine border color for
-    /// - Returns: Black border for unselected items or selected items that don't meet WCAG AA contrast with white;
-    ///           otherwise uses the color itself for selected items with sufficient contrast
-    private func borderColor(for color: T) -> Color {
-        guard selectedColor == color.hex else {
-            return .black
-        }
-        return color.color.meetsWCAG_AA(with: .white) ? Color(color.color) : .black
-    }
 }
 
 #Preview {
-    @Previewable @State var selectedColor: String? = nil
+    @Previewable @State var selectedColor: String? = TileColor.red.hex
     ScrollView {
-        ColorGridPicker(colors: TileColor.allCases, rows: 4, selectedColor: $selectedColor)
-        ColorGridPicker(colors: Crayon.sortedByColorCategory(), selectedColor: $selectedColor)
-        ColorGridPicker(colors: EGA.allCases, rows: 2, selectedColor: $selectedColor)
-        ColorGridPicker(colors: CGA.p0, rows: 1, selectedColor: $selectedColor)
-        ColorGridPicker(colors: CGA.p1, rows: 1, selectedColor: $selectedColor)
-        ColorGridPicker(colors: CGA.p0hi, rows: 1, selectedColor: $selectedColor)
-        ColorGridPicker(colors: CGA.p1hi, rows: 1, selectedColor: $selectedColor)
+        ColorGridPicker(gradientStartColor: .white, textAndBorderColor: .accentColor, colors: TileColor.allCases, rows: 4, selectedColor: $selectedColor)
     }
+}
+#Preview("Dark") {
+    @Previewable @State var selectedColor: String? = Palette.CGA.lightBlue.hex
+    ScrollView {
+        ColorGridPicker(gradientStartColor: .red, textAndBorderColor: .white, colors: Crayon.sortedByColorCategory(), selectedColor: $selectedColor)
+        ColorGridPicker(gradientStartColor: .red, textAndBorderColor: .white, colors: EGA.allCases, rows: 2, selectedColor: $selectedColor)
+        ColorGridPicker(gradientStartColor: .red, textAndBorderColor: .white, colors: CGA.p0, rows: 1, selectedColor: $selectedColor)
+        ColorGridPicker(gradientStartColor: .red, textAndBorderColor: .white, colors: CGA.p1, rows: 1, selectedColor: $selectedColor)
+        ColorGridPicker(gradientStartColor: .red, textAndBorderColor: .white, colors: CGA.p0hi, rows: 1, selectedColor: $selectedColor)
+        ColorGridPicker(gradientStartColor: .red, textAndBorderColor: .white, colors: CGA.p1hi, rows: 1, selectedColor: $selectedColor)
+   }
+    .preferredColorScheme(.dark)
 }
