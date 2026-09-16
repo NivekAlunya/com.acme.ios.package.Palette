@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  TileColor.swift
 //  Palette
 //
 //  Created by Kevin Launay on 20/10/2025.

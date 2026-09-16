@@ -1,13 +1,13 @@
 //
-//  ColorPicker.swift
+//  ColorGridPicker.swift
 //  Palette
 //
 //  Created by Kevin Launay on 20/10/2025.
 //
 
-// Create a SwiftUI component for selecting a color from a predefined set of colors
-
 import SwiftUI
+
+/// A horizontal grid color picker component for selecting a color token from any `Colorable` collection.
 public struct ColorGridPicker<T: Colorable>: View {
     enum ScrollState {
         case atStart
@@ -27,6 +27,13 @@ public struct ColorGridPicker<T: Colorable>: View {
     let rows: Int
     @Binding var selectedColor: String?
 
+    /// Initializes a `ColorGridPicker`.
+    /// - Parameters:
+    ///   - gradientStartColor: Color used for the edge fade indicator.
+    ///   - textAndBorderColor: Color for labels and selected tile border.
+    ///   - colors: Array of `Colorable` options.
+    ///   - rows: Number of horizontal rows (default: 4).
+    ///   - selectedColor: Binding to the selected hex string.
     public init(gradientStartColor: Color, textAndBorderColor: Color, colors: [T], rows: Int = 4, selectedColor: Binding<String?>) {
         self.colors = colors
         self.gradientStartColor = gradientStartColor
@@ -53,8 +60,8 @@ public struct ColorGridPicker<T: Colorable>: View {
                                 .frame(width: 60, height: 60)
                                 .padding(2)
                                 .overlay(alignment: .center) {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(borderColor, lineWidth: lineWidth)
+                                     RoundedRectangle(cornerRadius: 8)
+                                         .stroke(borderColor, lineWidth: lineWidth)
                                 }
                                 .scaleEffect(selectedColor == color.hex ? 1.1 : 1.0)
                                 .onTapGesture {
@@ -69,7 +76,7 @@ public struct ColorGridPicker<T: Colorable>: View {
                 }
                 .padding()
             }
-            .foregroundColor(textAndBorderColor)
+            .foregroundStyle(textAndBorderColor)
             .onScrollGeometryChange(for: ScrollState.self) { geo in
                 if geo.contentSize.width <= geo.bounds.width {
                     return .noScroll
@@ -80,8 +87,7 @@ public struct ColorGridPicker<T: Colorable>: View {
                 } else {
                     return .scrolling
                 }
-                
-            } action: { oldValue, newValue in
+            } action: { _, newValue in
                 withAnimation {
                     scrollState = newValue
                 }
@@ -98,26 +104,25 @@ public struct ColorGridPicker<T: Colorable>: View {
                             .frame(width: gradientWidth)
                     }
                 }
+                .allowsHitTesting(false)
             )
-            .onChange(of: selectedColor) { oldValue, newValue in
+            .onChange(of: selectedColor) { _, newValue in
                 if let hex = newValue {
                     withAnimation {
                         proxy.scrollTo(hex, anchor: .center)
                     }
                 }
             }
-            .onAppear {
+            .task {
                 if let hex = selectedColor {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + scrollToSelectedDelay) {
-                        withAnimation {
-                            proxy.scrollTo(hex, anchor: .center)
-                        }
+                    try? await Task.sleep(nanoseconds: UInt64(scrollToSelectedDelay * 1_000_000_000))
+                    withAnimation {
+                        proxy.scrollTo(hex, anchor: .center)
                     }
                 }
             }
         }
     }
-    
 }
 
 #Preview {

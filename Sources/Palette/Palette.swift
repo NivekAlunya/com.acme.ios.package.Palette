@@ -1,11 +1,19 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
+//
+//  Palette.swift
+//  Palette
+//
+//  Created by Kevin Launay on 20/10/2025.
+//
 
 import UIKit
+import SwiftUI
 
+/// Protocol representing a color palette token with associated hex representation and platform colors.
 public protocol Colorable: Sendable, Hashable, CaseIterable {
-    var color : UIColor { get }
-    var hex : String { get }
+    /// The `UIColor` representation.
+    var color: UIColor { get }
+    /// The hexadecimal color string (e.g. `"#FF5500"`).
+    var hex: String { get }
 }
 
 public extension Colorable {
@@ -13,25 +21,34 @@ public extension Colorable {
     var color: UIColor {
         return ColorHelper.hexcolor(self.hex)
     }
+
+    /// The SwiftUI `Color` representation.
+    var swiftUIColor: Color {
+        return Color(uiColor: color)
+    }
  
     func hash(into hasher: inout Hasher) {
         hasher.combine(hex)
     }
 }
 
-public class ColorHelper {
-    static func hexcolor(_ hex:String) -> UIColor {
-        var cString:String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+/// Utility for parsing and converting hexadecimal color strings.
+public final class ColorHelper: Sendable {
+    /// Parses a 6-character hex color string into a `UIColor`.
+    /// - Parameter hex: Hex string with or without leading `#`.
+    /// - Returns: Decoded `UIColor`, or `UIColor.gray` if the string is invalid.
+    public static func hexcolor(_ hex: String) -> UIColor {
+        var cString: String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         
-        if (cString.hasPrefix("#")) {
+        if cString.hasPrefix("#") {
             cString.remove(at: cString.startIndex)
         }
         
-        if ((cString.count) != 6) {
+        if cString.count != 6 {
             return UIColor.gray
         }
         
-        var rgbValue:UInt64 = 0
+        var rgbValue: UInt64 = 0
         Scanner(string: cString).scanHexInt64(&rgbValue)
         
         return UIColor(
