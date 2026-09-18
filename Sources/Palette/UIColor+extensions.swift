@@ -89,7 +89,7 @@ public extension UIColor {
     
     /// Determines if the color is considered dark (relative luminance <= 0.5).
     var isDark: Bool {
-        return relativeLuminance <= 0.5
+        return !isBright
     }
     
     /// Calculates the perceptual color difference using the CIE76 formula.
